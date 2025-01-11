@@ -22,10 +22,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+
       # Étape 3 : Construire l'image Docker
       - name: Build Docker Image
         run: |
           docker build -t my-flutter-app:latest .
+          RUN flutter doctor -v
+
 
       # Étape 4 : Exécuter des tests (en utilisant Docker pour standardiser l'environnement)
       - name: Run Flutter Tests
