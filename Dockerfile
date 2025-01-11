@@ -6,6 +6,8 @@ WORKDIR /app
 # Copier les fichiers source de l'application
 COPY . ./app
 
+RUN flutter doctor -v
+
 # Télécharger les dépendances
 RUN flutter pub get
 
