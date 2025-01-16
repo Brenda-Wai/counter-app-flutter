@@ -1,52 +1,42 @@
-name: Flutter CI on Windows
+name: Android Release
 
+# 1
 on:
+  # 2
   push:
-    branches:
-      - main
+    branches: [ "master" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "master" ]
 
+  # 3
+  workflow_dispatch:
+
+# 4
 jobs:
-  flutter-windows:
-    name: Flutter Workflow on Windows
-    runs-on: windows-latest
+  # 5
+  build:
+    # 6
+    runs-on: ubuntu-latest
 
+    # 7
     steps:
-      # Étape 1 : Configurer le repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # Étape 2 : Installer Flutter
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
+      # 8
+      - uses: actions/checkout@v3
+      # 9
+      - uses: actions/setup-java@v3
         with:
-          flutter-version: 'stable'
-
-      # Étape 3 : Ajouter Flutter au PATH
-      - name: Add Flutter to PATH
-        run: echo "${{ runner.tool_cache }}/flutter/bin" >> $env:GITHUB_PATH
-
-      # Étape 4 : Vérifier la version de Flutter
-      - name: Flutter version
-        run: flutter --version
-
-      # Étape 5 : Installer les dépendances
-      - name: Install dependencies
+          distribution: 'zulu'
+          java-version: "12.x"
+      # 10   
+      - uses: subosito/flutter-action@v2
+        with:
+          # 11
+          flutter-version: "3.0.0"
+          channel: 'stable'
+      # 12
+      - name: Get dependencies
         run: flutter pub get
 
-      # Étape 6 : Exécuter l'analyse statique
-      - name: Run static analysis
-        run: flutter analyze
-
-      # Étape 7 : Exécuter les tests
-      - name: Run tests
-        run: flutter test
-
-      # Étape 8 : Construire et lancer l'application Windows
-      - name: Build and run Flutter Windows app
-        run: |
-          flutter config --enable-windows-desktop
-          flutter build windows --release
-          Start-Process -FilePath .\build\windows\runner\Release\app.exe
+      # Runs a set of commands using the runners shell
+      - name: Start release build
+        run: flutter build appbundle
