@@ -1,42 +1,52 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Dart
+name: Flutter CI on Windows
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  flutter-windows:
+    name: Flutter Workflow on Windows
+    runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Étape 1 : Configurer le repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Note: This workflow uses the latest stable version of the Dart SDK.
-      # You can specify other versions if desired, see documentation here:
-      # https://github.com/dart-lang/setup-dart/blob/main/README.md
-      # - uses: dart-lang/setup-dart@v1
-      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+      # Étape 2 : Installer Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
 
+      # Étape 3 : Ajouter Flutter au PATH
+      - name: Add Flutter to PATH
+        run: echo "${{ runner.tool_cache }}/flutter/bin" >> $env:GITHUB_PATH
+
+      # Étape 4 : Vérifier la version de Flutter
+      - name: Flutter version
+        run: flutter --version
+
+      # Étape 5 : Installer les dépendances
       - name: Install dependencies
         run: flutter pub get
 
-      # Uncomment this step to verify the use of 'dart format' on each commit.
-      # - name: Verify formatting
-      #   run: dart format --output=none --set-exit-if-changed .
+      # Étape 6 : Exécuter l'analyse statique
+      - name: Run static analysis
+        run: flutter analyze
 
-      # Consider passing '--fatal-infos' for slightly stricter analysis.
-      - name: Analyze project source
-        run: dart analyze
-
-      # Your project will need to have tests in test/ and a dependency on
-      # package:test for this step to succeed. Note that Flutter projects will
-      # want to change this to 'flutter test'.
+      # Étape 7 : Exécuter les tests
       - name: Run tests
-        run: dart test
+        run: flutter test
+
+      # Étape 8 : Construire et lancer l'application Windows
+      - name: Build and run Flutter Windows app
+        run: |
+          flutter config --enable-windows-desktop
+          flutter build windows --release
+          Start-Process -FilePath .\build\windows\runner\Release\app.exe
