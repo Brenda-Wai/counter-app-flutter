@@ -1,0 +1,10 @@
+^C:\USERS\HP\DESKTOP\ENSPY\COURS HN5\SEMESTRE1\OS ET VIRTUALISATION PS\PROJET\COUNTER_APP\COUNTER-APP-FLUTTER\BUILD\WINDOWS\CMAKEFILES\CAF4162DD26C03849F722C26E0455A86\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
