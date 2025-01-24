@@ -1,3 +1,6 @@
 {
-    "liveServer.settings.port": 5583
+    "liveServer.settings.port": 5583,
+    "java.project.sourcePaths": [
+        "build/web"
+    ]
 }
