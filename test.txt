@@ -1,0 +1,59 @@
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/netdevice.h>
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/skbuff.h>
+#include <linux/ip.h>
+#include <linux/timer.h>
+
+static struct timer_list my_timer;
+static char *interface = "eth0";  // Interface réseau à surveiller
+module_param(interface, charp, 0);
+
+static unsigned long packets_received = 0;
+static unsigned long packets_sent = 0;
+static unsigned long bytes_received = 0;
+static unsigned long bytes_sent = 0;
+
+static void monitor_traffic(struct timer_list *t) {  // Modification ici
+    struct net_device *dev;
+    dev = dev_get_by_name(&init_net, interface);
+    if (dev) {
+        struct rtnl_link_stats64 stats;
+        dev_get_stats(dev, &stats);
+
+        packets_received = stats.rx_packets;
+        packets_sent = stats.tx_packets;
+        bytes_received = stats.rx_bytes;
+        bytes_sent = stats.tx_bytes;
+
+        printk(KERN_INFO "Network Monitor: RX Packets: %lu, TX Packets: %lu, RX Bytes: %lu, TX Bytes: %lu\n",
+               packets_received, packets_sent, bytes_received, bytes_sent);
+
+        dev_put(dev);
+    }
+
+    mod_timer(&my_timer, jiffies + HZ);
+}
+
+static int __init network_monitor_init(void) {
+    printk(KERN_INFO "Network Monitor: Module loaded\n");
+
+    timer_setup(&my_timer, monitor_traffic, 0);  // Changement ici
+    mod_timer(&my_timer, jiffies + HZ);
+
+    return 0;
+}
+
+static void __exit network_monitor_exit(void) {
+    del_timer(&my_timer);
+    printk(KERN_INFO "Network Monitor: Module unloaded\n");
+}
+
+module_init(network_monitor_init);
+module_exit(network_monitor_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Marcel ONYAGA");
+MODULE_DESCRIPTION("Network Traffic Monitor");
