@@ -1,1 +1,37 @@
 
+#!/bin/bash
+
+# === Configuration ===
+PROGRAM="./a.out"                     # Ton programme à exécuter
+EVENT="power/energy-pkg/"            # Événement RAPL à suivre
+INTERVAL=1                           # Durée entre chaque mesure (en secondes)
+LOGFILE="energy_log.txt"             # Fichier où écrire les résultats
+
+# === Initialisation ===
+echo "Mesure de la consommation énergétique avec perf (événement: $EVENT)" > "$LOGFILE"
+echo "Temps (s), Énergie (J)" >> "$LOGFILE"
+
+# === Démarrer le programme cible en arrière-plan ===
+$PROGRAM &
+PID=$!
+
+# === Boucle de mesure pendant l'exécution du programme ===
+START_TIME=$(date +%s)
+
+while kill -0 $PID 2>/dev/null; do
+    TIMESTAMP=$(($(date +%s) - START_TIME))
+    
+    # Mesure d'énergie sur 1 seconde
+    ENERGY=$(perf stat -e $EVENT -p $PID sleep $INTERVAL 2>&1 | \
+             grep "$EVENT" | awk '{print $1}')
+
+    # Si ENERGY est vide (erreur), arrêter la boucle
+    if [[ -z "$ENERGY" ]]; then
+        echo "Erreur de lecture avec perf. Arrêt."
+        break
+    fi
+
+    echo "$TIMESTAMP, $ENERGY" | tee -a "$LOGFILE"
+done
+
+echo "Mesure terminée. Résultats enregistrés dans $LOGFILE"
